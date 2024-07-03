@@ -18,7 +18,7 @@ repositories {
 }
 
 configurations {
-    all {
+    configureEach {
         resolutionStrategy.eachDependency { DependencyResolveDetails details->
             if (details.requested.group == 'org.seleniumhq.selenium') {
                 details.useVersion('4.19.1')
@@ -80,7 +80,7 @@ java {
     sourceCompatibility = JavaVersion.toVersion("11")
 }
 
-tasks.withType(Test) {
+tasks.withType(Test).configureEach {
     useJUnitPlatform()
     systemProperty "geb.env", System.getProperty('geb.env')
     systemProperty "geb.build.reportsDir", reporting.file("geb/integrationTest")
