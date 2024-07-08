@@ -21,6 +21,6 @@ class PatentService {
             s List.of(patent_id:'asc')
         }
 
-        String body = JsonOutput.prettyPrint(builder.toString())
+        JsonOutput.prettyPrint(builder.toString())
     }
 }
