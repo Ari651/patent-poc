@@ -10,7 +10,7 @@ class PatentService {
      * @param id A unique character sequence that identifies the patent
      * @return the published data regarding the patent (or null)
      */
-    def fetchPatentInfo(String id) {
+    def fetchPatentInfo(String id, String title) {
         JsonBuilder builder = new JsonBuilder()
         builder {
             f 'patent_id', 'patent_title', 'patent_date', 'patent_abstract', 'patent_detail_desc_length',
@@ -19,13 +19,13 @@ class PatentService {
             o { size 100 }
             q {
                 _and List.of(
-                        {'inventors.inventor_name_last' 'Yu'},
+                        {'inventors.inventor_name_last' 'Dodge'},
+                        { _text_all { patent_title title } },
                         {_or List.of(
-                                { 'patent_id' "$id" },
-                                { 'patent_id' "$id" },
-                                { 'application.application_id' "$id" },
-                                { 'pct_data.pct_doc_number' "$id" },
-                                { _text_all { patent_title 'DESACETOXYTUBULYSIN H AND ANALOGS THEREOF'} }
+                                { patent_id id },
+                                { patent_id id },
+                                { 'application.application_id' id },
+                                { 'pct_data.pct_doc_number' id }
                             )
                         }
                 )

@@ -17,6 +17,7 @@ class PatentServiceSpec extends Specification implements ServiceUnitTest<PatentS
 
     void "just testing output"() {
         expect:
-        service.fetchPatentInfo('11751759') == null
+//        service.fetchPatentInfo('2726987', 'Wnt protein signalling inhibitors') == null
+        service.fetchPatentInfo('12/994661', 'Wnt protein signalling inhibitors') == null
     }
 }
