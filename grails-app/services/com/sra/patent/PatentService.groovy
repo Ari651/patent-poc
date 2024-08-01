@@ -13,14 +13,28 @@ class PatentService {
     def fetchPatentInfo(String id) {
         JsonBuilder builder = new JsonBuilder()
         builder {
-            f 'patent_id', 'patent_title', 'patent_date'
+            f 'patent_id', 'patent_title', 'patent_date', 'patent_abstract', 'patent_detail_desc_length',
+                    'patent_earliest_application_date', 'patent_term_extension', 'patent_type', 'patent_year',
+                    'inventors.inventor_name_first', 'inventors.inventor_name_last', 'pct_data', 'application'
             o { size 100 }
             q {
-
+                _and List.of(
+                        {'inventors.inventor_name_last' 'Yu'},
+                        {_or List.of(
+                                { 'patent_id' "$id" },
+                                { 'patent_id' "$id" },
+                                { 'application.application_id' "$id" },
+                                { 'pct_data.pct_doc_number' "$id" },
+                                { _text_all { patent_title 'DESACETOXYTUBULYSIN H AND ANALOGS THEREOF'} }
+                            )
+                        }
+                )
             }
             s List.of(patent_id:'asc')
         }
 
-        JsonOutput.prettyPrint(builder.toString())
+        log.info JsonOutput.prettyPrint(builder.toString())
+
+        //TODO API Call and Output
     }
 }
