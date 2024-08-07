@@ -27,6 +27,14 @@ configurations {
     }
 }
 
+sourceSets {
+    main {
+        resources {
+            srcDir 'grails-app/migrations'
+        }
+    }
+}
+
 dependencies {
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     implementation("io.github.virtualdogbert:logback-groovy-config:1.12.4")
@@ -70,6 +78,8 @@ dependencies {
     testRuntimeOnly("org.seleniumhq.selenium:selenium-safari-driver:4.19.1")
 
     implementation 'org.grails:grails-shell:6.1.2'
+    implementation 'org.grails.plugins:database-migration:5.0.0-SNAPSHOT'
+    implementation 'org.liquibase:liquibase-core:4.19.0'
 }
 
 application {
