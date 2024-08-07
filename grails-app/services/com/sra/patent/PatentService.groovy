@@ -11,6 +11,10 @@ class PatentService {
      * @return the published data regarding the patent (or null)
      */
     def fetchPatentInfo(String id, String title) {
+        id = id.trim()
+        String noComma = id.replaceAll(/,/, "")
+        String noSlash = id.replaceAll(/\//, "")
+        String none = id.replaceAll(/[,\/]/, "")
         JsonBuilder builder = new JsonBuilder()
         builder {
             f 'patent_id', 'patent_title', 'patent_date', 'patent_abstract', 'patent_detail_desc_length',
@@ -19,13 +23,21 @@ class PatentService {
             o { size 100 }
             q {
                 _and List.of(
-                        {'inventors.inventor_name_last' 'Dodge'},
+//                        {'inventors.inventor_name_last' 'Dodge'},
                         { _text_all { patent_title title } },
                         {_or List.of(
                                 { patent_id id },
-                                { patent_id id },
+                                { patent_id noComma },
+                                { patent_id noSlash },
+                                { patent_id none },
                                 { 'application.application_id' id },
-                                { 'pct_data.pct_doc_number' id }
+                                { 'application.application_id' noComma },
+                                { 'application.application_id' noSlash },
+                                { 'application.application_id' none },
+                                { 'pct_data.pct_doc_number' id },
+                                { 'pct_data.pct_doc_number' noComma },
+                                { 'pct_data.pct_doc_number' noSlash },
+                                { 'pct_data.pct_doc_number' none }
                             )
                         }
                 )
