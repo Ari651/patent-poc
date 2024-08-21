@@ -24,13 +24,16 @@ class PatentService {
     /**
      * Searches for a granted patent by its Patent ID, Application ID (etc?)
      * @param id A unique character sequence that identifies the patent
+     * @param title The title of the patent/application
      * @return the published data regarding the patent (or null)
      */
     def fetchPatentInfo(String id, String title) {
-        id = id.trim()
-        String noComma = id.replaceAll(/,/, "")
-        String noSlash = id.replaceAll(/\//, "")
-        String none = id.replaceAll(/[,\/]/, "")
+        log.debug "As entered: $id"
+        String lookupId = id.trim() - 'US' - 'WO' - 'A1' - 'A2' - 'B1' - 'B2'
+        lookupId = lookupId.trim()
+        String noComma = lookupId.replaceAll(/,/, "")
+        String noSlash = lookupId.replaceAll(/\//, "")
+        String none = lookupId.replaceAll(/[,\/]/, "")
         JsonBuilder builder = new JsonBuilder()
         builder {
             f 'patent_id', 'patent_title', 'patent_date', 'patent_abstract', 'patent_detail_desc_length',
@@ -42,15 +45,15 @@ class PatentService {
 //                        {'inventors.inventor_name_last' 'Dodge'},
                         { _text_all { patent_title title } },
                         {_or List.of(
-                                { patent_id id },
+                                { patent_id lookupId },
                                 { patent_id noComma },
                                 { patent_id noSlash },
                                 { patent_id none },
-                                { 'application.application_id' id },
+                                { 'application.application_id' lookupId },
                                 { 'application.application_id' noComma },
                                 { 'application.application_id' noSlash },
                                 { 'application.application_id' none },
-                                { 'pct_data.pct_doc_number' id },
+                                { 'pct_data.pct_doc_number' lookupId },
                                 { 'pct_data.pct_doc_number' noComma },
                                 { 'pct_data.pct_doc_number' noSlash },
                                 { 'pct_data.pct_doc_number' none }
@@ -74,7 +77,7 @@ class PatentService {
                 //add one second.
                 timeToWait++
                 //QUICK & DIRTY
-                log.debug("Wait for $timeToWait seconds and retry")
+                log.info("Wait for $timeToWait seconds and retry")
                 sleep(1000 * timeToWait)
                 //Retry once
                 try {
@@ -106,25 +109,25 @@ class PatentService {
         patentDataService.all.each {
             def info = fetchPatentInfo(it.patentNumber, it.patentTitle)
             if(info && !info.error){
-                String commaThing
-                String commaThing2
+                String applications
+                String pctDocs
                 if(info.count == 1) {
                     //Found our patent
                     def patent = info.patents[0]
-                    commaThing = patent?.application?.collect { app -> app.application_id }?.join(', ')
-                    commaThing2 = patent?.pct_data?.collect { pct -> pct.pct_doc_number }?.join(', ')
+                    applications = patent?.application?.collect { app -> app.application_id }?.join(', ')
+                    pctDocs = patent?.pct_data?.collect { pct -> pct.pct_doc_number }?.join(', ')
 
-                    Map foundItem = [patentId: it.id, found: it.patentNumber, patentNumber: patent.patent_number, title: patent.patent_title, applications: commaThing, pct_docs: commaThing2]
-                    log.info(foundItem as String)
+                    Map foundItem = [patentId: it.id, found: it.patentNumber, patentNumber: patent.patent_id, applications: applications, pct_docs: pctDocs, title: patent.patent_title]
+                    log.info("FOUND: ${foundItem as String}")
                     found << foundItem
 
-                } else if(info.count > 1){
+                } else if(info.count > 1 || info.total_hits > 1){
                     //Record the ambiguities
                     List<Map<String,String>> hits = []
                     info.patents?.each { patent ->
-                        commaThing = patent?.application?.collect {app -> app.application_id }?.join(', ')
-                        commaThing2 = patent?.pct_data?.collect { pct -> pct.pct_doc_number }?.join(', ')
-                        def hit = [patentId: it.id, patentNumber: patent.patent_number, title: patent.patent_title, applications: commaThing, pct_docs: commaThing2]
+                        applications = patent?.application?.collect {app -> app.application_id }?.join(', ')
+                        pctDocs = patent?.pct_data?.collect { pct -> pct.pct_doc_number }?.join(', ')
+                        def hit = [patentId: it.id, patentNumber: patent.patent_number, applications: applications, pct_docs: pctDocs, title: patent.patent_title]
                         log.info(hit as String)
                         hits << hit
                     }
@@ -132,7 +135,7 @@ class PatentService {
 
                 } else {
                     //Record the exceptions
-                    Map miss = [patentId: it.id, patentNumber: it.patentNumber]
+                    Map miss = [patentId: it.id, patentNumber: it.patentNumber, title: it.patentTitle]
                     log.info(miss as String)
                     unmatched << miss
                 }
