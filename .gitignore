@@ -13,3 +13,4 @@ out/
 .classpath
 .factorypath
 /patent-poc.log
+patents.sql

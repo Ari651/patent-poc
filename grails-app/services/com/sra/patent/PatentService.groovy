@@ -81,9 +81,11 @@ class PatentService {
                 sleep(1000 * timeToWait)
                 //Retry once
                 try {
+                    log.info "Trying again..."
                     doCall(query)
                 } catch (HttpClientResponseException ignore) {
                     //give up.
+                    log.error "Retry failed for ID $lookupId"
                 }
             }
         }
