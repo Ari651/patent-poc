@@ -28,9 +28,11 @@ class PatentService {
      * @return the published data regarding the patent (or null)
      */
     def fetchPatentInfo(String id, String title) {
-        log.debug "As entered: $id"
-        String lookupId = id.trim() - 'US' - 'WO' - 'A1' - 'A2' - 'B1' - 'B2'
-        lookupId = lookupId.trim()
+        log.info "As entered: $id"
+        String lookupId = id.trim() - 'WO' - 'A1' - 'A2' - 'B1' - 'B2'
+        //remove 'US' from the front only (case insensitive)
+        lookupId = lookupId.trim().replaceAll(' ', '').replaceAll(/^([Uu][Ss])/, '')
+        log.info "Using: $lookupId"
         String noComma = lookupId.replaceAll(/,/, "")
         String noSlash = lookupId.replaceAll(/\//, "")
         String none = lookupId.replaceAll(/[,\/]/, "")
@@ -41,24 +43,19 @@ class PatentService {
                     'inventors.inventor_name_first', 'inventors.inventor_name_last', 'pct_data', 'application'
             o { size 100 }
             q {
-                _and List.of(
-//                        {'inventors.inventor_name_last' 'Dodge'},
-                        { _text_all { patent_title title } },
-                        {_or List.of(
-                                { patent_id lookupId },
-                                { patent_id noComma },
-                                { patent_id noSlash },
-                                { patent_id none },
-                                { 'application.application_id' lookupId },
-                                { 'application.application_id' noComma },
-                                { 'application.application_id' noSlash },
-                                { 'application.application_id' none },
-                                { 'pct_data.pct_doc_number' lookupId },
-                                { 'pct_data.pct_doc_number' noComma },
-                                { 'pct_data.pct_doc_number' noSlash },
-                                { 'pct_data.pct_doc_number' none }
-                            )
-                        }
+                _or List.of(
+                    { patent_id lookupId },
+                    { patent_id noComma },
+                    { patent_id noSlash },
+                    { patent_id none },
+                    { 'application.application_id' lookupId },
+                    { 'application.application_id' noComma },
+                    { 'application.application_id' noSlash },
+                    { 'application.application_id' none },
+                    { 'pct_data.pct_doc_number' lookupId },
+                    { 'pct_data.pct_doc_number' noComma },
+                    { 'pct_data.pct_doc_number' noSlash },
+                    { 'pct_data.pct_doc_number' none }
                 )
             }
             s List.of(patent_id:'asc')
